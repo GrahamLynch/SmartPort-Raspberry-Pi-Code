@@ -7,11 +7,22 @@ import imutils
 from firebase import firebase
 from matplotlib import pyplot as plt
 
-userId = "htui1UTIEaTvs1Ql51S8GuNwG6C3"
+userId = "sVoQ9YpOJXZaumzuDpfuztuZTGp2"
 
 firebase = firebase.FirebaseApplication('https://smartport-68b3c.firebaseio.com/',None)
 
 cap = cv2.VideoCapture(0)
+
+green = np.uint8([[[22, 128, 64]]]) #here insert the bgr values which you want to convert to hsv
+hsvGreen = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
+print(hsvGreen)
+
+lowerLimit = hsvGreen[0][0][0] - 10, 100, 100
+upperLimit = hsvGreen[0][0][0] + 10, 255, 255
+
+
+print(lowerLimit)
+print(upperLimit)
 
 cv2.namedWindow("Frame")
 points = []
@@ -20,27 +31,27 @@ while True:
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     ## define colour detection
     # Define upper and lower red ranges
-    lower_green = np.array([22, 94, 114])
-    upper_green = np.array([179, 255, 255])
+    lower_green = np.array([25, 52, 72])
+    upper_green = np.array([102, 255, 255])
 
-    # Define upper and lower blue ranges
-    lower_blue = np.array([91, 156, 32])
-    upper_blue = np.array([111, 176, 112])
+    # define range of blue color in HSV
+    lower_blue = np.array([94, 80, 2])
+    upper_blue = np.array([126, 255, 255])
 
 
     bluemask = cv2.inRange(hsv_frame, lower_blue, upper_blue)
-    blue = cv2.bitwise_and(frame, frame, mask=bluemask)
-    blue = cv2.cvtColor(blue, cv2.COLOR_HSV2BGR)
+    bluebit = cv2.bitwise_and(frame, frame, mask=bluemask)
+    blue = cv2.cvtColor(bluebit, cv2.COLOR_HSV2BGR)
     blue = cv2.cvtColor(blue, cv2.COLOR_BGR2GRAY)
-    bluecount = cv2.countNonZero(blue)
+    bluecount = cv2.countNonZero(bluemask)
 
     greenmask = cv2.inRange(hsv_frame, lower_green, upper_green)
-    green = cv2.bitwise_and(frame, frame, mask=greenmask)
-    green = cv2.cvtColor(green, cv2.COLOR_HSV2BGR)
+    greenbit = cv2.bitwise_and(frame, frame, mask=greenmask)
+    green = cv2.cvtColor(greenbit, cv2.COLOR_HSV2BGR)
     green = cv2.cvtColor(green, cv2.COLOR_BGR2GRAY)
-    greencount = cv2.countNonZero(green)
+    greencount = cv2.countNonZero(greenmask)
 
-
+	
     plane_cascade = cv2.CascadeClassifier('planecascade.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -48,19 +59,23 @@ while True:
    
     #print result
     planes = plane_cascade.detectMultiScale(gray, 1.1, 25)
+	
     for (x,y,w,h) in planes:
 	cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
 	print "Green"+ str(greencount)
 	print "Blue"+ str(bluecount)
-	if (greencount < 1000) and planes.all():
+	if (bluecount > greencount) and planes.all():
 		print "Ryanair"
-		firebase.put(userId,'flight','Ryanair')
+		#firebase.put(userId,'airline','Ryanair')
+		#firebase.put(userId,'flightStatus','Landed')
 	else:
 			pass
-	if (greencount > 1000) and planes.all():
+	if (greencount > bluecount) and planes.all():
 		print "Aer Lingus"
-		firebase.put(userId,'flight','Aer Lingus')
-    cv2.imshow("frame", frame)
+		#firebase.put(userId,'airline','Aer Lingus')
+		#firebase.put(userId,'flightStatus','Landed')
+    cv2.imshow("frame", greenbit)
+
 	#cv2.imshow("Bluemask", bluemask)
 	#cv2.imshow("Greenmask", greenmask)
 
