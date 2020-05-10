@@ -13,16 +13,6 @@ firebase = firebase.FirebaseApplication('https://smartport-68b3c.firebaseio.com/
 
 cap = cv2.VideoCapture(0)
 
-green = np.uint8([[[22, 128, 64]]]) #here insert the bgr values which you want to convert to hsv
-hsvGreen = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
-print(hsvGreen)
-
-lowerLimit = hsvGreen[0][0][0] - 10, 100, 100
-upperLimit = hsvGreen[0][0][0] + 10, 255, 255
-
-
-print(lowerLimit)
-print(upperLimit)
 
 cv2.namedWindow("Frame")
 points = []
@@ -30,11 +20,11 @@ while True:
     _, frame = cap.read()
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     ## define colour detection
-    # Define upper and lower red ranges
+    # Define upper and lower green ranges
     lower_green = np.array([25, 52, 72])
     upper_green = np.array([102, 255, 255])
 
-    # define range of blue color in HSV
+    # Define upper and lower blue ranges
     lower_blue = np.array([94, 80, 2])
     upper_blue = np.array([126, 255, 255])
 
@@ -55,29 +45,25 @@ while True:
     plane_cascade = cv2.CascadeClassifier('planecascade.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    #cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+    
    
     #print result
     planes = plane_cascade.detectMultiScale(gray, 1.1, 25)
 	
     for (x,y,w,h) in planes:
-	cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-	print "Green"+ str(greencount)
-	print "Blue"+ str(bluecount)
 	if (bluecount > greencount) and planes.all():
 		print "Ryanair"
-		#firebase.put(userId,'airline','Ryanair')
-		#firebase.put(userId,'flightStatus','Landed')
+		firebase.put(userId,'airline','Ryanair')
+		firebase.put(userId,'flightStatus','Landed')
 	else:
 			pass
 	if (greencount > bluecount) and planes.all():
 		print "Aer Lingus"
-		#firebase.put(userId,'airline','Aer Lingus')
-		#firebase.put(userId,'flightStatus','Landed')
-    cv2.imshow("frame", greenbit)
+		firebase.put(userId,'airline','Aer Lingus')
+		firebase.put(userId,'flightStatus','Landed')
+    cv2.imshow("frame", frame)
 
-	#cv2.imshow("Bluemask", bluemask)
-	#cv2.imshow("Greenmask", greenmask)
+
 
     key = cv2.waitKey(1)
     if key == 27:
